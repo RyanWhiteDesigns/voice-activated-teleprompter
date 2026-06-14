@@ -6,13 +6,14 @@
   "scripts": {
     "dev": "vite",
     "start": "vite",
-    "build": "tsc && vite build",
+    "build": "npm run type-check && vite build",
     "preview": "vite preview",
-    "test": "exit 0",
+    "test": "npm run lint",
+    "ci": "npm run lint && npm run build",
     "format": "prettier --write .",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc -b"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.9.0",
