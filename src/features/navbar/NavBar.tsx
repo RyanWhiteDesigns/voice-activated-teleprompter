@@ -31,6 +31,33 @@ export const NavBar = () => {
   const horizontallyFlipped = useAppSelector(selectHorizontallyFlipped)
   const verticallyFlipped = useAppSelector(selectVerticallyFlipped)
 
+  const toggleFullscreen = async (shouldEnter: boolean) => {
+    try {
+      if (shouldEnter) {
+        if (!document.fullscreenElement) {
+          await document.documentElement.requestFullscreen({
+            navigationUI: "hide",
+          })
+        }
+      } else if (document.fullscreenElement) {
+        await document.exitFullscreen()
+      }
+    } catch {
+      // If the browser blocks fullscreen, keep teleprompter controls working.
+    }
+  }
+
+  const handleStartStop = async () => {
+    if (status === "stopped") {
+      await toggleFullscreen(true)
+      dispatch(startTeleprompter())
+      return
+    }
+
+    dispatch(stopTeleprompter())
+    await toggleFullscreen(false)
+  }
+
   return (
     <nav
       className="navbar is-black has-text-light is-unselectable"
@@ -39,13 +66,7 @@ export const NavBar = () => {
     >
       <div className="navbar-brand">
         <div className="navbar-item">
-          <div className="title has-text-grey">
-            <div>Voice-Activated Teleprompter</div>
-            <div className="is-size-7 has-text-warning navbar-subtitle">
-              <i className="fa-solid fa-triangle-exclamation"></i> Works best in
-              Chrome
-            </div>
-          </div>
+          <div className="title has-text-grey">Voice-Activated Teleprompter</div>
         </div>
       </div>
       <div className="navbar-menu is-active">
@@ -155,13 +176,9 @@ export const NavBar = () => {
             ) : null}
 
             <button
-              className="button"
+              className="button start-stop-button"
               disabled={status === "editing"}
-              onClick={() =>
-                dispatch(
-                  status === "stopped" ? startTeleprompter() : stopTeleprompter(),
-                )
-              }
+              onClick={() => void handleStartStop()}
               title={
                 status === "stopped" || status === "editing" ? "Start" : "Stop"
               }
