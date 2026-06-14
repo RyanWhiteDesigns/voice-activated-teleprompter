@@ -7,35 +7,8 @@ export interface NavBarSliceState {
   verticallyFlipped: boolean
   fontSize: number
   margin: number
-  opacity: number
-  scrollOffset: number
-  language: string
-}
-
-export const SUPPORTED_LOCALES = {
-  "nl-NL": "🇳🇱 Dutch (Netherlands)",
-  "en-US": "🇺🇸 English (USA)",
-  "fr-FR": "🇫🇷 French (France)",
-  "de-DE": "🇩🇪 German (Germany)",
-  "it-IT": "🇮🇹 Italian (Italy)",
-  "pt-BR": "🇧🇷 Portuguese (Brazil)",
-  "es-ES": "🇪🇸 Spanish (Spain)",
-}
-
-// Detect browser language and default to pt-BR if Portuguese, otherwise en-US
-const detectLanguage = (): string => {
-  const savedLanguage = localStorage.getItem("teleprompter-language")
-  if (savedLanguage) {
-    return savedLanguage
-  }
-
-  if (Object.prototype.hasOwnProperty.call(SUPPORTED_LOCALES, navigator.language)) {
-    return navigator.language
-  }
-
-  // TODO: Try to find a "best match", for example if `navigator.language` is `fr-CA` or just `fr`...
-
-  return "en-US"
+  textBrightness: number
+  linePosition: number
 }
 
 const initialState: NavBarSliceState = {
@@ -44,25 +17,16 @@ const initialState: NavBarSliceState = {
   verticallyFlipped: false,
   fontSize: 30,
   margin: 10,
-  opacity: 80,
-  scrollOffset: 100,
-  language: detectLanguage(),
+  textBrightness: 85,
+  linePosition: 50,
 }
 
 export const navbarSlice = createAppSlice({
   name: "navbar",
-
-  // `createSlice` will infer the state type from the `initialState` argument
   initialState,
-
-  // The `reducers` field lets us define reducers and generate associated actions
   reducers: create => ({
     toggleEdit: create.reducer(state => {
-      if (state.status === "editing") {
-        state.status = "stopped"
-      } else {
-        state.status = "editing"
-      }
+      state.status = state.status === "editing" ? "stopped" : "editing"
     }),
 
     start: create.reducer(state => {
@@ -89,17 +53,14 @@ export const navbarSlice = createAppSlice({
       state.margin = action.payload
     }),
 
-    setOpacity: create.reducer((state, action: PayloadAction<number>) => {
-      state.opacity = action.payload
-    }),
+    setTextBrightness: create.reducer(
+      (state, action: PayloadAction<number>) => {
+        state.textBrightness = action.payload
+      },
+    ),
 
-    setScrollOffset: create.reducer((state, action: PayloadAction<number>) => {
-      state.scrollOffset = action.payload
-    }),
-
-    setLanguage: create.reducer((state, action: PayloadAction<string>) => {
-      state.language = action.payload
-      localStorage.setItem("teleprompter-language", action.payload)
+    setLinePosition: create.reducer((state, action: PayloadAction<number>) => {
+      state.linePosition = action.payload
     }),
   }),
 
@@ -109,13 +70,11 @@ export const navbarSlice = createAppSlice({
     selectMargin: state => state.margin,
     selectHorizontallyFlipped: state => state.horizontallyFlipped,
     selectVerticallyFlipped: state => state.verticallyFlipped,
-    selectOpacity: state => state.opacity,
-    selectScrollOffset: state => state.scrollOffset,
-    selectLanguage: state => state.language,
+    selectTextBrightness: state => state.textBrightness,
+    selectLinePosition: state => state.linePosition,
   },
 })
 
-// Action creators are generated for each case reducer function.
 export const {
   toggleEdit,
   start,
@@ -124,9 +83,8 @@ export const {
   flipVertically,
   setFontSize,
   setMargin,
-  setOpacity,
-  setScrollOffset,
-  setLanguage,
+  setTextBrightness,
+  setLinePosition,
 } = navbarSlice.actions
 
 export const {
@@ -135,7 +93,6 @@ export const {
   selectMargin,
   selectHorizontallyFlipped,
   selectVerticallyFlipped,
-  selectOpacity,
-  selectScrollOffset,
-  selectLanguage,
+  selectTextBrightness,
+  selectLinePosition,
 } = navbarSlice.selectors

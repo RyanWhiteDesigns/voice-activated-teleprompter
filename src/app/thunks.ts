@@ -12,8 +12,7 @@ let speechRecognizer: SpeechRecognizer | null = null
 export const startTeleprompter = (): AppThunk => (dispatch, getState) => {
   dispatch(start())
 
-  const { language } = getState().navbar
-  speechRecognizer = new SpeechRecognizer(language)
+  speechRecognizer = new SpeechRecognizer()
 
   speechRecognizer.onresult(
     (final_transcript: string, interim_transcript: string) => {
@@ -52,10 +51,4 @@ export const stopTeleprompter = (): AppThunk => dispatch => {
   }
 
   dispatch(stop())
-}
-
-export const changeLanguage = (language: string): AppThunk => () => {
-  if (speechRecognizer !== null) {
-    speechRecognizer.setLanguage(language)
-  }
 }

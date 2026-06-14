@@ -1,7 +1,11 @@
 import { useEffect, useLayoutEffect, useRef } from "react"
 import { escape } from "html-escaper"
 import { useAppDispatch, useAppSelector } from "../../app/hooks"
-import { setContent, setFinalTranscriptIndex, setInterimTranscriptIndex } from "./contentSlice"
+import {
+  setContent,
+  setFinalTranscriptIndex,
+  setInterimTranscriptIndex,
+} from "./contentSlice"
 
 import {
   selectStatus,
@@ -9,8 +13,8 @@ import {
   selectVerticallyFlipped,
   selectFontSize,
   selectMargin,
-  selectOpacity,
-  selectScrollOffset,
+  selectTextBrightness,
+  selectLinePosition,
 } from "../navbar/navbarSlice"
 
 import {
@@ -28,8 +32,8 @@ export const Content = () => {
   const status = useAppSelector(selectStatus)
   const fontSize = useAppSelector(selectFontSize)
   const margin = useAppSelector(selectMargin)
-  const opacity = useAppSelector(selectOpacity)
-  const scrollOffset = useAppSelector(selectScrollOffset)
+  const textBrightness = useAppSelector(selectTextBrightness)
+  const linePosition = useAppSelector(selectLinePosition)
   const horizontallyFlipped = useAppSelector(selectHorizontallyFlipped)
   const verticallyFlipped = useAppSelector(selectVerticallyFlipped)
   const rawText = useAppSelector(selectRawText)
@@ -42,74 +46,109 @@ export const Content = () => {
     padding: `0 ${margin}px`,
   }
 
+  const unreadShade = Math.round((textBrightness / 100) * 255)
+  const unreadColor = `rgb(${unreadShade} ${unreadShade} ${unreadShade})`
+  const finalShade = Math.max(Math.round(unreadShade * 0.3), 25)
+  const finalColor = `rgb(${finalShade} ${finalShade} ${finalShade})`
+  const interimColor = `rgb(${Math.max(unreadShade, 60)} ${Math.max(
+    Math.round(unreadShade * 0.85),
+    50,
+  )} ${Math.max(Math.round(unreadShade * 0.25), 20)})`
+
   const containerRef = useRef<null | HTMLDivElement>(null)
-  const lastRef = useRef<null | HTMLDivElement>(null)
+  const activeLineRef = useRef<null | HTMLSpanElement>(null)
+  const topSpacerRef = useRef<null | HTMLDivElement>(null)
   const bottomSpacerRef = useRef<null | HTMLDivElement>(null)
 
   useEffect(() => {
-    if (containerRef.current) {
-      if (lastRef.current) {
-        containerRef.current.scrollTo({
-          top: Math.max(lastRef.current.offsetTop - scrollOffset, 0),
-          behavior: "auto",
-        })
-      } else {
-        containerRef.current.scrollTo({
-          top: 0,
-          behavior: "auto",
-        })
-      }
+    if (!containerRef.current) {
+      return
     }
-  }, [interimTranscriptIndex, finalTranscriptIndex, scrollOffset])
+
+    const targetOffset =
+      (containerRef.current.clientHeight * linePosition) / 100
+
+    if (activeLineRef.current) {
+      containerRef.current.scrollTo({
+        top: Math.max(activeLineRef.current.offsetTop - targetOffset, 0),
+        behavior: "auto",
+      })
+      return
+    }
+
+    containerRef.current.scrollTo({
+      top: 0,
+      behavior: "auto",
+    })
+  }, [interimTranscriptIndex, finalTranscriptIndex, linePosition])
 
   useLayoutEffect(() => {
-    if (!containerRef.current || !bottomSpacerRef.current) {
+    if (
+      !containerRef.current ||
+      !topSpacerRef.current ||
+      !bottomSpacerRef.current
+    ) {
       return
     }
 
     const containerHeight = containerRef.current.clientHeight
-    bottomSpacerRef.current.style.height = `${scrollOffset + containerHeight}px`
-  }, [scrollOffset, textElements.length])
+    const targetOffset = (containerHeight * linePosition) / 100
+    topSpacerRef.current.style.height = `${targetOffset}px`
+    bottomSpacerRef.current.style.height = `${Math.max(
+      containerHeight - targetOffset,
+      0,
+    )}px`
+  }, [linePosition, textElements.length, fontSize, margin])
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
-      if (status === "editing") return;
+      if (status === "editing") return
 
-      const maxIndex = textElements.length - 1;
+      const maxIndex = textElements.length - 1
 
       if (event.code === "Escape") {
-        event.preventDefault();
-        dispatch(stopTeleprompter());
+        event.preventDefault()
+        dispatch(stopTeleprompter())
       } else if (event.code === "Space") {
-        event.preventDefault();
+        event.preventDefault()
         if (status === "stopped") {
-          dispatch(startTeleprompter());
+          dispatch(startTeleprompter())
         } else if (status === "started") {
-          dispatch(stopTeleprompter());
+          dispatch(stopTeleprompter())
         }
       } else if (event.code === "ArrowUp") {
-        event.preventDefault();
-        dispatch(setFinalTranscriptIndex(Math.max(-1, finalTranscriptIndex - 15)));
-        dispatch(setInterimTranscriptIndex(Math.max(-1, interimTranscriptIndex - 15)));
+        event.preventDefault()
+        dispatch(setFinalTranscriptIndex(Math.max(-1, finalTranscriptIndex - 15)))
+        dispatch(
+          setInterimTranscriptIndex(Math.max(-1, interimTranscriptIndex - 15)),
+        )
       } else if (event.code === "ArrowLeft") {
-        event.preventDefault();
-        dispatch(setFinalTranscriptIndex(Math.max(-1, finalTranscriptIndex - 5)));
-        dispatch(setInterimTranscriptIndex(Math.max(-1, interimTranscriptIndex - 5)));
+        event.preventDefault()
+        dispatch(setFinalTranscriptIndex(Math.max(-1, finalTranscriptIndex - 5)))
+        dispatch(
+          setInterimTranscriptIndex(Math.max(-1, interimTranscriptIndex - 5)),
+        )
       } else if (event.code === "ArrowDown") {
-        event.preventDefault();
-        dispatch(setFinalTranscriptIndex(Math.min(maxIndex, finalTranscriptIndex + 15)));
-        dispatch(setInterimTranscriptIndex(Math.min(maxIndex, interimTranscriptIndex + 15)));
+        event.preventDefault()
+        dispatch(setFinalTranscriptIndex(Math.min(maxIndex, finalTranscriptIndex + 15)))
+        dispatch(
+          setInterimTranscriptIndex(
+            Math.min(maxIndex, interimTranscriptIndex + 15),
+          ),
+        )
       } else if (event.code === "ArrowRight") {
-        event.preventDefault();
-        dispatch(setFinalTranscriptIndex(Math.min(maxIndex, finalTranscriptIndex + 5)));
-        dispatch(setInterimTranscriptIndex(Math.min(maxIndex, interimTranscriptIndex + 5)));
+        event.preventDefault()
+        dispatch(setFinalTranscriptIndex(Math.min(maxIndex, finalTranscriptIndex + 5)))
+        dispatch(
+          setInterimTranscriptIndex(Math.min(maxIndex, interimTranscriptIndex + 5)),
+        )
       }
-    };
+    }
 
-    window.addEventListener("keydown", handleKeyPress);
+    window.addEventListener("keydown", handleKeyPress)
     return () => {
-      window.removeEventListener("keydown", handleKeyPress);
-    };
+      window.removeEventListener("keydown", handleKeyPress)
+    }
   })
 
   return (
@@ -127,16 +166,31 @@ export const Content = () => {
           ref={containerRef}
           style={{
             ...style,
-            opacity: opacity / 100,
             transform: `scale(${horizontallyFlipped ? "-1" : "1"}, ${verticallyFlipped ? "-1" : "1"})`,
           }}
         >
-          {textElements.map((textElement, index, array) => {
-            const itemProps =
-              interimTranscriptIndex > 0 &&
-              index === Math.min(interimTranscriptIndex + 2, array.length - 1)
-                ? { ref: lastRef }
-                : {}
+          <div
+            aria-hidden="true"
+            ref={topSpacerRef}
+            style={{ height: 0, flexShrink: 0 }}
+          />
+          {textElements.map((textElement, index) => {
+            const isFinal =
+              finalTranscriptIndex >= 0 &&
+              textElement.index <= finalTranscriptIndex + 1
+            const isInterim =
+              !isFinal &&
+              interimTranscriptIndex >= 0 &&
+              textElement.index <= interimTranscriptIndex + 1
+            const activeIndex = Math.max(
+              0,
+              Math.min(
+                Math.max(interimTranscriptIndex, finalTranscriptIndex) + 2,
+                textElements.length - 1,
+              ),
+            )
+            const itemProps = index === activeIndex ? { ref: activeLineRef } : {}
+
             return (
               <span
                 key={textElement.index}
@@ -145,14 +199,19 @@ export const Content = () => {
                   dispatch(setInterimTranscriptIndex(index - 1))
                 }}
                 className={
-                  finalTranscriptIndex > 0 &&
-                  textElement.index <= finalTranscriptIndex + 1
+                  isFinal
                     ? "final-transcript"
-                    : interimTranscriptIndex > 0 &&
-                        textElement.index <= interimTranscriptIndex + 1
+                    : isInterim
                       ? "interim-transcript"
-                      : "has-text-white"
+                      : undefined
                 }
+                style={{
+                  color: isFinal
+                    ? finalColor
+                    : isInterim
+                      ? interimColor
+                      : unreadColor,
+                }}
                 {...itemProps}
                 dangerouslySetInnerHTML={{
                   __html: escape(textElement.value).replace(/\n/g, "<br>"),

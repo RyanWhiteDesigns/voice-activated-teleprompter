@@ -1,6 +1,5 @@
 import { useAppDispatch, useAppSelector } from "../../app/hooks"
-
-import { startTeleprompter, stopTeleprompter, changeLanguage } from "../../app/thunks"
+import { startTeleprompter, stopTeleprompter } from "../../app/thunks"
 
 import {
   toggleEdit,
@@ -8,18 +7,15 @@ import {
   flipVertically,
   setFontSize,
   setMargin,
-  setOpacity,
-  setScrollOffset,
-  setLanguage,
+  setTextBrightness,
+  setLinePosition,
   selectStatus,
   selectHorizontallyFlipped,
   selectVerticallyFlipped,
   selectFontSize,
   selectMargin,
-  selectOpacity,
-  selectScrollOffset,
-  selectLanguage,
-  SUPPORTED_LOCALES,
+  selectTextBrightness,
+  selectLinePosition,
 } from "./navbarSlice"
 
 import { resetTranscriptionIndices } from "../content/contentSlice"
@@ -30,11 +26,10 @@ export const NavBar = () => {
   const status = useAppSelector(selectStatus)
   const fontSize = useAppSelector(selectFontSize)
   const margin = useAppSelector(selectMargin)
-  const opacity = useAppSelector(selectOpacity)
-  const scrollOffset = useAppSelector(selectScrollOffset)
+  const textBrightness = useAppSelector(selectTextBrightness)
+  const linePosition = useAppSelector(selectLinePosition)
   const horizontallyFlipped = useAppSelector(selectHorizontallyFlipped)
   const verticallyFlipped = useAppSelector(selectVerticallyFlipped)
-  const language = useAppSelector(selectLanguage)
 
   return (
     <nav
@@ -57,35 +52,6 @@ export const NavBar = () => {
         <div className="navbar-end">
           {status === "stopped" ? (
             <>
-              <div className="navbar-item">
-                <div className="field">
-                  <div className="control">
-                    <div className="select is-small">
-                      <select
-                        value={language}
-                        onChange={e => {
-                          const newLanguage = e.currentTarget.value
-                          dispatch(setLanguage(newLanguage))
-                          dispatch(changeLanguage(newLanguage))
-                        }}
-                        title="Select Language"
-                      >
-                        {Object.keys(SUPPORTED_LOCALES).map(locale => {
-                          const label =
-                            SUPPORTED_LOCALES[
-                              locale as keyof typeof SUPPORTED_LOCALES
-                            ]
-                          return (
-                            <option key={locale} value={locale}>
-                              {label}
-                            </option>
-                          )
-                        })}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              </div>
               <div className="navbar-item slider">
                 <span>Font size:</span>
                 <input
@@ -113,15 +79,17 @@ export const NavBar = () => {
                 />
               </div>
               <div className="navbar-item slider">
-                <span>Brightness:</span>
+                <span>Text brightness:</span>
                 <input
                   type="range"
-                  step="10"
+                  step="5"
                   min="0"
                   max="100"
-                  value={opacity}
+                  value={textBrightness}
                   onChange={e =>
-                    dispatch(setOpacity(parseInt(e.currentTarget.value, 10)))
+                    dispatch(
+                      setTextBrightness(parseInt(e.currentTarget.value, 10)),
+                    )
                   }
                 />
               </div>
@@ -129,12 +97,12 @@ export const NavBar = () => {
                 <span>Line position:</span>
                 <input
                   type="range"
-                  step="10"
+                  step="5"
                   min="10"
-                  max="200"
-                  value={scrollOffset}
+                  max="80"
+                  value={linePosition}
                   onChange={e =>
-                    dispatch(setScrollOffset(parseInt(e.currentTarget.value, 10)))
+                    dispatch(setLinePosition(parseInt(e.currentTarget.value, 10)))
                   }
                 />
               </div>
