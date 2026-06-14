@@ -16,7 +16,7 @@ const initialState: NavBarSliceState = {
   horizontallyFlipped: false,
   verticallyFlipped: false,
   fontSize: 45,
-  margin: 110,
+  margin: 150,
   textBrightness: 35,
   linePosition: 35,
 }

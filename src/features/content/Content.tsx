@@ -44,6 +44,7 @@ export const Content = () => {
   const style = {
     fontSize: `${fontSize}px`,
     padding: `0 ${margin}px`,
+    lineHeight: "1.3",
   }
 
   const unreadShade = Math.round((textBrightness / 100) * 255)
