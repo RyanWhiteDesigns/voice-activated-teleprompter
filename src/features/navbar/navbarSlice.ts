@@ -15,10 +15,10 @@ const initialState: NavBarSliceState = {
   status: "stopped",
   horizontallyFlipped: false,
   verticallyFlipped: false,
-  fontSize: 60,
-  margin: 10,
+  fontSize: 45,
+  margin: 110,
   textBrightness: 35,
-  linePosition: 25,
+  linePosition: 35,
 }
 
 export const navbarSlice = createAppSlice({
