@@ -25,6 +25,14 @@ import {
 } from "./contentSlice"
 
 import { startTeleprompter, stopTeleprompter } from "../../app/thunks"
+import {
+  findParagraphStart,
+  findNextParagraphStart,
+  findNextSentenceStart,
+  findSentenceStart,
+  findPreviousParagraphStart,
+  findPreviousSentenceStart,
+} from "../../lib/text-navigation"
 
 export const Content = () => {
   const dispatch = useAppDispatch()
@@ -60,6 +68,10 @@ export const Content = () => {
   const activeLineRef = useRef<null | HTMLSpanElement>(null)
   const topSpacerRef = useRef<null | HTMLDivElement>(null)
   const bottomSpacerRef = useRef<null | HTMLDivElement>(null)
+  const syncTranscriptPosition = (nextIndex: number) => {
+    dispatch(setFinalTranscriptIndex(nextIndex))
+    dispatch(setInterimTranscriptIndex(nextIndex))
+  }
 
   useEffect(() => {
     if (!containerRef.current) {
@@ -119,29 +131,45 @@ export const Content = () => {
         }
       } else if (event.code === "ArrowUp") {
         event.preventDefault()
-        dispatch(setFinalTranscriptIndex(Math.max(-1, finalTranscriptIndex - 15)))
-        dispatch(
-          setInterimTranscriptIndex(Math.max(-1, interimTranscriptIndex - 15)),
+        const activeIndex = Math.max(finalTranscriptIndex, interimTranscriptIndex)
+        const currentParagraphStart = findParagraphStart(
+          textElements,
+          Math.max(activeIndex, 0),
+        )
+        syncTranscriptPosition(
+          activeIndex === currentParagraphStart
+            ? findPreviousParagraphStart(textElements, Math.max(activeIndex, 0))
+            : currentParagraphStart,
         )
       } else if (event.code === "ArrowLeft") {
         event.preventDefault()
-        dispatch(setFinalTranscriptIndex(Math.max(-1, finalTranscriptIndex - 5)))
-        dispatch(
-          setInterimTranscriptIndex(Math.max(-1, interimTranscriptIndex - 5)),
+        const activeIndex = Math.max(finalTranscriptIndex, interimTranscriptIndex)
+        const currentSentenceStart = findSentenceStart(
+          textElements,
+          Math.max(activeIndex, 0),
+        )
+        syncTranscriptPosition(
+          activeIndex === currentSentenceStart
+            ? findPreviousSentenceStart(textElements, Math.max(activeIndex, 0))
+            : currentSentenceStart,
         )
       } else if (event.code === "ArrowDown") {
         event.preventDefault()
-        dispatch(setFinalTranscriptIndex(Math.min(maxIndex, finalTranscriptIndex + 15)))
-        dispatch(
-          setInterimTranscriptIndex(
-            Math.min(maxIndex, interimTranscriptIndex + 15),
+        const activeIndex = Math.max(finalTranscriptIndex, interimTranscriptIndex)
+        syncTranscriptPosition(
+          Math.min(
+            maxIndex,
+            findNextParagraphStart(textElements, Math.max(activeIndex, 0)),
           ),
         )
       } else if (event.code === "ArrowRight") {
         event.preventDefault()
-        dispatch(setFinalTranscriptIndex(Math.min(maxIndex, finalTranscriptIndex + 5)))
-        dispatch(
-          setInterimTranscriptIndex(Math.min(maxIndex, interimTranscriptIndex + 5)),
+        const activeIndex = Math.max(finalTranscriptIndex, interimTranscriptIndex)
+        syncTranscriptPosition(
+          Math.min(
+            maxIndex,
+            findNextSentenceStart(textElements, Math.max(activeIndex, 0)),
+          ),
         )
       }
     }

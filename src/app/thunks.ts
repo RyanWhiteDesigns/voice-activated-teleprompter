@@ -6,6 +6,7 @@ import {
 } from "../features/content/contentSlice"
 import SpeechRecognizer from "../lib/speech-recognizer"
 import { computeSpeechRecognitionTokenIndex } from "../lib/speech-matcher"
+import { clampBackwardJumpToPreviousSentence } from "../lib/text-navigation"
 
 let speechRecognizer: SpeechRecognizer | null = null
 
@@ -19,22 +20,33 @@ export const startTeleprompter = (): AppThunk => (dispatch, getState) => {
       const {
         textElements,
         finalTranscriptIndex: lastFinalTranscriptIndex,
+        interimTranscriptIndex: lastInterimTranscriptIndex,
       } = getState().content
 
       if (final_transcript !== "") {
-        const finalTranscriptIndex = computeSpeechRecognitionTokenIndex(
+        const matchedFinalTranscriptIndex = computeSpeechRecognitionTokenIndex(
           final_transcript,
           textElements,
-          lastFinalTranscriptIndex,
+          Math.max(lastFinalTranscriptIndex, 0),
+        )
+        const finalTranscriptIndex = clampBackwardJumpToPreviousSentence(
+          textElements,
+          Math.max(lastFinalTranscriptIndex, lastInterimTranscriptIndex),
+          matchedFinalTranscriptIndex,
         )
         dispatch(setFinalTranscriptIndex(finalTranscriptIndex))
       }
 
       if (interim_transcript !== "") {
-        const interimTranscriptIndex = computeSpeechRecognitionTokenIndex(
+        const matchedInterimTranscriptIndex = computeSpeechRecognitionTokenIndex(
           interim_transcript,
           textElements,
-          lastFinalTranscriptIndex,
+          Math.max(lastFinalTranscriptIndex, lastInterimTranscriptIndex, 0),
+        )
+        const interimTranscriptIndex = clampBackwardJumpToPreviousSentence(
+          textElements,
+          Math.max(lastFinalTranscriptIndex, lastInterimTranscriptIndex),
+          matchedInterimTranscriptIndex,
         )
         dispatch(setInterimTranscriptIndex(interimTranscriptIndex))
       }
