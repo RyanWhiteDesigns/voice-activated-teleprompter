@@ -20,7 +20,6 @@ export const startTeleprompter = (): AppThunk => (dispatch, getState) => {
       const {
         textElements,
         finalTranscriptIndex: lastFinalTranscriptIndex,
-        interimTranscriptIndex: lastInterimTranscriptIndex,
       } = getState().content
 
       if (final_transcript !== "") {
@@ -31,7 +30,7 @@ export const startTeleprompter = (): AppThunk => (dispatch, getState) => {
         )
         const finalTranscriptIndex = clampBackwardJumpToPreviousSentence(
           textElements,
-          Math.max(lastFinalTranscriptIndex, lastInterimTranscriptIndex),
+          lastFinalTranscriptIndex,
           matchedFinalTranscriptIndex,
         )
         dispatch(setFinalTranscriptIndex(finalTranscriptIndex))
@@ -41,11 +40,11 @@ export const startTeleprompter = (): AppThunk => (dispatch, getState) => {
         const matchedInterimTranscriptIndex = computeSpeechRecognitionTokenIndex(
           interim_transcript,
           textElements,
-          Math.max(lastFinalTranscriptIndex, lastInterimTranscriptIndex, 0),
+          Math.max(lastFinalTranscriptIndex, 0),
         )
         const interimTranscriptIndex = clampBackwardJumpToPreviousSentence(
           textElements,
-          Math.max(lastFinalTranscriptIndex, lastInterimTranscriptIndex),
+          lastFinalTranscriptIndex,
           matchedInterimTranscriptIndex,
         )
         dispatch(setInterimTranscriptIndex(interimTranscriptIndex))
