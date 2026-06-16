@@ -24,12 +24,16 @@ body {
   flex-shrink: 0;
   border-bottom: 1px solid $grey-darker;
   min-height: 0;
+  background-color: $black;
 }
 
 .navbar-menu {
+  background-color: $black;
+  box-shadow: none;
   flex: 1;
   display: flex;
   align-items: center;
+  padding: 0;
 }
 
 .navbar-brand,
@@ -125,6 +129,56 @@ body {
 
 input[type="range"] {
   width: 78px;
+}
+
+@media screen and (max-width: 1023px) {
+  .navbar {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .navbar-brand {
+    flex: 0 1 auto;
+  }
+
+  .navbar-menu {
+    display: flex;
+    flex: 1 1 100%;
+  }
+
+  .navbar-end {
+    justify-content: flex-start;
+    gap: 0.15rem 0.4rem;
+  }
+
+  .navbar .title {
+    font-size: 1.25rem;
+  }
+
+  .navbar .navbar-item {
+    padding: 0.2rem 0.35rem;
+  }
+
+  .slider > span {
+    font-size: 0.78rem;
+    margin-right: 0.3rem;
+  }
+
+  input[type="range"] {
+    width: 58px;
+  }
+
+  .buttons.navbar-item {
+    gap: 0.25rem;
+  }
+
+  .buttons.navbar-item .button,
+  .start-stop-button {
+    height: 2rem !important;
+    min-width: 2rem !important;
+    padding: 0.25rem !important;
+  }
 }
 
 /* Content styles */
